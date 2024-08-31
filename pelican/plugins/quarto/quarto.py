@@ -44,7 +44,6 @@ format:
 
     def run_quarto(self, filename):
         try:
-            # cd to content dir
             result = subprocess.run(
                 ["quarto", "render", filename, "--output", "-"],
                 cwd=str(Path(self.path) / 'content'),
