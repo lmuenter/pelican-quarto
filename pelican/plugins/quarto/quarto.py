@@ -1,9 +1,6 @@
 from datetime import date, datetime
 import logging
 import re
-from pathlib import Path
-import os
-import subprocess
 
 import markdown
 import pytz
@@ -12,52 +9,9 @@ import yaml
 from pelican import readers, signals
 from pelican.contents import Author, Category
 
+from .adapters import Quarto
+
 logger = logging.getLogger(__name__)
-
-
-class Quarto:
-    def __init__(self, path, output_path):
-        self.path = Path(path)
-        self.output_path = output_path
-        self._setup_quarto_project()
-
-    def _setup_quarto_project(self):
-        content_dir = self.path / "content"
-        quarto_config_path = content_dir / "_quarto.yml"
-        content_dir.mkdir(parents=True, exist_ok=True)
-
-        output_dir_abs = self.path / self.output_path
-
-        quarto_config = f"""
-project:
-  type: website
-  output-dir: {output_dir_abs}
-
-format:
-  html:
-    theme: none
-        """
-        with open(quarto_config_path, "w") as config_file:
-            config_file.write(quarto_config)
-        logger.info(f"_quarto.yml created at {quarto_config_path}")
-
-
-    def run_quarto(self, filename):
-        try:
-            result = subprocess.run(
-                ["quarto", "render", filename, "--output", "-"],
-                cwd=str(Path(self.path) / 'content'),
-                capture_output=True,
-                text=True
-            )
-            if result.returncode == 0:
-                logger.info("Quarto render completed successfully.")
-                return result.stdout
-            else:
-                return result
-
-        except Exception as e:
-            logger.error("An exception occured while running Quarto: {e}")
 
 
 class QuartoReader(readers.BaseReader):
@@ -83,8 +37,7 @@ class QuartoReader(readers.BaseReader):
             metadata['author'] = Author(metadata["author"], settings=self.settings)
 
         quarto = Quarto(self.settings["PATH"], self.settings["OUTPUT_PATH"])
-        output = quarto.run_quarto(filename)
-        logger.error(f"fffffffffffffffffffffff {output}")
+        quarto_html = quarto.run_quarto(filename)
 
         html_content = markdown.markdown(markdown_body)
         return html_content, metadata
