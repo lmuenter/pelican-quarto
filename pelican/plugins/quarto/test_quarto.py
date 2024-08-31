@@ -38,7 +38,9 @@ Hi
 
 def test_plugin_functionality(create_article, temp_path):
     """Test basic plugin functionality: Header extraction."""
-    output_path = Path(temp_path) / "output"
+    path = Path(temp_path)
+    output_path = path / "output"
+    content_path = path / "content"
     settings = read_settings(
         override={
             "PATH": temp_path,
@@ -51,5 +53,7 @@ def test_plugin_functionality(create_article, temp_path):
     pelican.run()
 
     articles=os.listdir(output_path)
+    assert f"{TESTFILE_NAME}.html" in articles, "An article should have been written"
 
-    assert f"{TESTFILE_NAME}.html" in articles
+    contents=os.listdir(content_path)
+    assert "_quarto.yml" in contents, "A quarto config file should have been prepared"
