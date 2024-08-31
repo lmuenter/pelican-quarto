@@ -1,3 +1,5 @@
 pytest==8.3.2
 ruff==0.6.2
 pelican==4.9.1
+pyYAML==6.0.2
+markdown==3.7
