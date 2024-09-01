@@ -46,8 +46,6 @@ def test_plugin_functionality(create_article, temp_path):
     with open(script_dir / "test_data" / "quarto_test_output.html", "r", encoding="utf-8") as f:
         mock_html_content = f.read()
 
-    print(mock_html_content)
-
     # Mock the QuartoHTML class to return a mock object with the desired HTML output
     with patch("quarto.quarto.QuartoHTML", autospec=True) as MockQuartoHTML:
         mock_instance = MockQuartoHTML.return_value
@@ -76,6 +74,8 @@ def test_plugin_functionality(create_article, temp_path):
             filepath = output_path / f"{TESTFILE_NAME}.html"
             with open(filepath, "r", encoding="utf-8") as f:
                 html_content = f.read()
+
+            print(html_content)
 
             soup = BeautifulSoup(html_content, "html.parser")
 
