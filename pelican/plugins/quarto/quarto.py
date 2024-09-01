@@ -99,11 +99,12 @@ def process_articles(generator):
 
                 body_contents = soup.body
                 if body_contents:
-                    article._content = ''.join(str(element) for element in body_contents.contents)
+                    combined_content = ''.join(str(element) for element in body_contents.contents)
+                    combined_content += ''.join(quarto_html.header_scripts_links)
+                    combined_content += ''.join(quarto_html.header_styles)
+                    article._content = combined_content
                 else:
                     article._content = str(soup)
-
-                article.metadata["description"] = "Custom description here"
 
             except Exception as e:
                 logger.error(f"Error processing Quarto content for {article.source_path}: {e}")
