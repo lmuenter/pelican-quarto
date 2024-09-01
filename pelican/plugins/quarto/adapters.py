@@ -51,7 +51,8 @@ format:
                 logger.info("Quarto render completed successfully.")
                 return result.stdout
             else:
-                return result
+                logger.error(f"Error while rendering Quarto Markdown File {filename}: {result.stderr}")
+                return result.stderr
 
         except Exception as e:
             logger.error("An exception occured while running Quarto: {e}")
