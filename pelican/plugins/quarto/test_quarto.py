@@ -43,7 +43,7 @@ def test_plugin_functionality(create_article, temp_path):
     content_path = path / "content"
     settings = read_settings(
         override={
-            "PATH": temp_path,
+            "PATH": content_path,
             "OUTPUT_PATH": output_path,
             "PLUGIN_PATHS": ["../"],
             "PLUGINS": ["quarto"],
