@@ -5,17 +5,22 @@ import re
 import markdown
 import pytz
 import yaml
+from pathlib import Path
 
 from pelican import readers, signals
 from pelican.contents import Author, Category
+from pelican.generators import ArticlesGenerator
+from .parsers import QuartoHTML
 
 from .adapters import Quarto
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
+QUARTO_EXTENSION = "qmd"
 
 
 class QuartoReader(readers.BaseReader):
-    file_extensions = ["qmd"]
+    file_extensions = [QUARTO_EXTENSION]
 
     def read(self, filename):
         """Read QMD Files."""
@@ -30,17 +35,15 @@ class QuartoReader(readers.BaseReader):
 
         # ensure correct datetime format for date
         metadata["date"] = self.parse_date(metadata["date"])
+        metadata["summary"] = "Hi"
 
         if "category" in metadata:
             metadata['category'] = Category(metadata["category"], settings=self.settings)
         if "author" in metadata:
             metadata['author'] = Author(metadata["author"], settings=self.settings)
 
-        quarto = Quarto(self.settings["PATH"], self.settings["OUTPUT_PATH"])
-        quarto_html = quarto.run_quarto(filename)
-
-        html_content = markdown.markdown(markdown_body)
-        return html_content, metadata
+        article_content = markdown.markdown(markdown_body)
+        return article_content, metadata
 
     def parse_date(self, date_input):
         """Ensure date has timezone information."""
@@ -54,6 +57,56 @@ class QuartoReader(readers.BaseReader):
             logger.error("Invalid date format or type")
             return None
 
+def setup_quarto_project(pelican_instance):
+    """Set up the Quarto project if a .qmd file is found."""
+    content_path = Path(pelican_instance.settings["PATH"])
+    output_path = pelican_instance.settings["OUTPUT_PATH"]
+
+    # Check for .qmd files in the content directory
+    qmd_files_present = any(content_path.glob(f"**/*.{QUARTO_EXTENSION}"))
+
+    if qmd_files_present:
+        quarto = Quarto(content_path, output_path)
+        quarto._setup_quarto_project()
+
+
+def inject_quarto_content(generators):
+    """
+    Adjusted function to handle only ArticlesGenerator objects.
+    This function is connected to a signal that might receive multiple generator types.
+    """
+    for generator in generators:
+        if isinstance(generator, ArticlesGenerator):  # Check if it's an ArticlesGenerator
+            logger.debug(f"Found ArticlesGenerator with {len(generator.articles)} articles")
+            process_articles(generator)
+
+def process_articles(generator):
+    """
+    Processes articles within a given ArticlesGenerator.
+    """
+    for article in generator.articles:
+        if article.source_path.endswith(".qmd"):
+            try:
+                quarto = Quarto(article.settings['PATH'], article.settings['OUTPUT_PATH'])
+                quarto_html_string = quarto.run_quarto(article.source_path)
+                quarto_html = QuartoHTML(quarto_html_string)
+                soup = BeautifulSoup(quarto_html.body, 'html.parser')
+
+                # Remove the Quarto block header
+                title_block_header = soup.find('header', id='title-block-header')
+                if title_block_header:
+                    title_block_header.decompose()
+
+                body_contents = soup.body
+                if body_contents:
+                    article._content = ''.join(str(element) for element in body_contents.contents)
+                else:
+                    article._content = str(soup)
+
+                article.metadata["description"] = "Custom description here"
+
+            except Exception as e:
+                logger.error(f"Error processing Quarto content for {article.source_path}: {e}")
 
 def add_reader(readers):
     """Add qmd reader to pelican."""
@@ -61,4 +114,6 @@ def add_reader(readers):
 
 def register():
     """Register plugin on readers init."""
+    signals.initialized.connect(setup_quarto_project)
     signals.readers_init.connect(add_reader)
+    signals.all_generators_finalized.connect(inject_quarto_content)

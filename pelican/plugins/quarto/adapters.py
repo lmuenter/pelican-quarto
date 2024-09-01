@@ -18,6 +18,10 @@ class Quarto:
         quarto_config_path = content_dir / "_quarto.yml"
         content_dir.mkdir(parents=True, exist_ok=True)
 
+        if quarto_config_path.exists():
+            logger.info(f"_quarto.yml already exists at {quarto_config_path}, skipping setup.")
+            return
+
         output_dir_abs = self.path / self.output_path
 
         quarto_config = f"""
