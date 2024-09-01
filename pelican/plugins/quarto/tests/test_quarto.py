@@ -53,40 +53,41 @@ def test_plugin_functionality(create_article, temp_path):
         mock_instance.header_scripts_links = []
         mock_instance.header_styles = []
 
-        path = Path(temp_path)
-        output_path = path / "output"
-        content_path = path / "content"
-        settings = read_settings(
-            override={
-                "PATH": content_path,
-                "OUTPUT_PATH": output_path,
-                "PLUGIN_PATHS": ["../"],
-                "PLUGINS": ["quarto"],
-            }
-        )
-        pelican = Pelican(settings=settings)
-        pelican.run()
+        with patch.dict('os.environ', {'PATH': ''}):
+            path = Path(temp_path)
+            output_path = path / "output"
+            content_path = path / "content"
+            settings = read_settings(
+                override={
+                    "PATH": content_path,
+                    "OUTPUT_PATH": output_path,
+                    "PLUGIN_PATHS": ["../"],
+                    "PLUGINS": ["quarto"],
+                }
+            )
+            pelican = Pelican(settings=settings)
+            pelican.run()
 
-        articles=os.listdir(output_path)
-        assert f"{TESTFILE_NAME}.html" in articles, "An article should have been written"
+            articles=os.listdir(output_path)
+            assert f"{TESTFILE_NAME}.html" in articles, "An article should have been written"
 
-        filepath = output_path / f"{TESTFILE_NAME}.html"
-        with open(filepath, "r", encoding="utf-8") as f:
-            html_content = f.read()
+            filepath = output_path / f"{TESTFILE_NAME}.html"
+            with open(filepath, "r", encoding="utf-8") as f:
+                html_content = f.read()
 
-        soup = BeautifulSoup(html_content, "html.parser")
+            soup = BeautifulSoup(html_content, "html.parser")
 
-        contents=os.listdir(content_path)
-        assert "_quarto.yml" in contents, "A quarto config file should have been prepared"
+            contents=os.listdir(content_path)
+            assert "_quarto.yml" in contents, "A quarto config file should have been prepared"
 
-        script_tags = soup.find_all("script")
-        link_tags = soup.find_all("link")
+            script_tags = soup.find_all("script")
+            link_tags = soup.find_all("link")
 
-        # check if body contains Quarto content
-        body = soup.find("body")
-        assert body is not None, "The body of the HTML should exist"
-        quarto_script = body.find("script", id="quarto-html-after-body")
-        assert quarto_script is not None, "Quarto-specific script not found in body"
+            # check if body contains Quarto content
+            body = soup.find("body")
+            assert body is not None, "The body of the HTML should exist"
+            quarto_script = body.find("script", id="quarto-html-after-body")
+            assert quarto_script is not None, "Quarto-specific script not found in body"
 
-        assert any("site_lib" in script.get("src", "") for script in script_tags), "No script link to site_lib found in header"
-        assert any("site_lib" in link.get("href", "") for link in link_tags), "No link to site_lib found in header"
+            assert any("site_lib" in script.get("src", "") for script in script_tags), "No script link to site_lib found in header"
+            assert any("site_lib" in link.get("href", "") for link in link_tags), "No link to site_lib found in header"
