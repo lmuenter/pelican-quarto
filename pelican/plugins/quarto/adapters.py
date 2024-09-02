@@ -45,14 +45,14 @@ format:
                 ["quarto", "render", filename, "--output", "-"],
                 cwd=str(Path(self.wdir) / 'content'),
                 capture_output=True,
-                text=True
+                text=True,
+                check=False
             )
             if result.returncode == 0:
                 logger.info("Quarto render completed successfully.")
                 return result.stdout
-            else:
-                logger.error(f"Error while rendering Quarto Markdown File {filename}: {result.stderr}")
-                return result.stderr
+            logger.error(f"Error while rendering Quarto Markdown File {filename}: {result.stderr}")
+            return result.stderr
 
-        except Exception as e:
+        except Exception:
             logger.error("An exception occured while running Quarto: {e}")

@@ -1,19 +1,19 @@
 from datetime import date, datetime
 import logging
+from pathlib import Path
 import re
 
+from bs4 import BeautifulSoup
 import markdown
 import pytz
 import yaml
-from pathlib import Path
 
 from pelican import readers, signals
 from pelican.contents import Author, Category
 from pelican.generators import ArticlesGenerator
-from .parsers import QuartoHTML
 
 from .adapters import Quarto
-from bs4 import BeautifulSoup
+from .parsers import QuartoHTML
 
 logger = logging.getLogger(__name__)
 QUARTO_EXTENSION = "qmd"
@@ -25,7 +25,7 @@ class QuartoReader(readers.BaseReader):
     def read(self, filename):
         """Read QMD Files."""
 
-        with open(filename, "r", encoding="utf-8") as file:
+        with open(filename, encoding="utf-8") as file:
             content = file.read()
 
         # extract yaml header and content body
@@ -38,9 +38,9 @@ class QuartoReader(readers.BaseReader):
         metadata["summary"] = "Hi"
 
         if "category" in metadata:
-            metadata['category'] = Category(metadata["category"], settings=self.settings)
+            metadata["category"] = Category(metadata["category"], settings=self.settings)
         if "author" in metadata:
-            metadata['author'] = Author(metadata["author"], settings=self.settings)
+            metadata["author"] = Author(metadata["author"], settings=self.settings)
 
         article_content = markdown.markdown(markdown_body)
         return article_content, metadata
@@ -49,20 +49,19 @@ class QuartoReader(readers.BaseReader):
         """Ensure date has timezone information."""
         if isinstance(date_input, datetime):
             return date_input if date_input.tzinfo else date_input.replace(tzinfo=pytz.UTC)
-        elif isinstance(date_input, date):
+        if isinstance(date_input, date):
             return datetime(year=date_input.year, month=date_input.month, day=date_input.day, tzinfo=pytz.UTC)
-        elif isinstance(date_input, str):
+        if isinstance(date_input, str):
             return datetime.strptime(date_input, "%Y-%m-%d").replace(tzinfo=pytz.UTC)
-        else:
-            logger.error("Invalid date format or type")
-            return None
+        logger.error("Invalid date format or type")
+        return None
 
 def setup_quarto_project(pelican_instance):
     """Set up the Quarto project if a .qmd file is found."""
     content_path = Path(pelican_instance.settings["PATH"])
     output_path = pelican_instance.settings["OUTPUT_PATH"]
 
-    # Check for .qmd files in the content directory
+    # check for .qmd files in the content directory
     qmd_files_present = any(content_path.glob(f"**/*.{QUARTO_EXTENSION}"))
 
     if qmd_files_present:
@@ -71,37 +70,31 @@ def setup_quarto_project(pelican_instance):
 
 
 def inject_quarto_content(generators):
-    """
-    Adjusted function to handle only ArticlesGenerator objects.
-    This function is connected to a signal that might receive multiple generator types.
-    """
+    """Inject quarto content into the generated article."""
     for generator in generators:
-        if isinstance(generator, ArticlesGenerator):  # Check if it's an ArticlesGenerator
-            logger.debug(f"Found ArticlesGenerator with {len(generator.articles)} articles")
+        if isinstance(generator, ArticlesGenerator):
             process_articles(generator)
 
 def process_articles(generator):
-    """
-    Processes articles within a given ArticlesGenerator.
-    """
+    """Process articles within a given ArticlesGenerator."""
     for article in generator.articles:
         if article.source_path.endswith(".qmd"):
             try:
-                quarto = Quarto(article.settings['PATH'], article.settings['OUTPUT_PATH'])
+                quarto = Quarto(article.settings["PATH"], article.settings["OUTPUT_PATH"])
                 quarto_html_string = quarto.run_quarto(article.source_path)
                 quarto_html = QuartoHTML(quarto_html_string)
-                soup = BeautifulSoup(quarto_html.body, 'html.parser')
+                soup = BeautifulSoup(quarto_html.body, "html.parser")
 
-                # Remove the Quarto block header
-                title_block_header = soup.find('header', id='title-block-header')
+                # remove Quarto block header
+                title_block_header = soup.find("header", id="title-block-header")
                 if title_block_header:
                     title_block_header.decompose()
 
                 body_contents = soup.body
                 if body_contents:
-                    combined_content = ''.join(str(element) for element in body_contents.contents)
-                    combined_content += ''.join(quarto_html.header_scripts_links)
-                    combined_content += ''.join(quarto_html.header_styles)
+                    combined_content = "".join(str(element) for element in body_contents.contents)
+                    combined_content += "".join(quarto_html.header_scripts_links)
+                    combined_content += "".join(quarto_html.header_styles)
                     article._content = combined_content
                 else:
                     article._content = str(soup)
@@ -114,7 +107,7 @@ def add_reader(readers):
     readers.reader_classes["qmd"] = QuartoReader
 
 def register():
-    """Register plugin on readers init."""
+    """Register plugin."""
     signals.initialized.connect(setup_quarto_project)
     signals.readers_init.connect(add_reader)
     signals.all_generators_finalized.connect(inject_quarto_content)

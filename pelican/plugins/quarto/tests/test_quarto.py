@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
+
 from bs4 import BeautifulSoup
 import pytest
-from unittest.mock import patch, MagicMock
 
 from pelican import Pelican
 from pelican.settings import read_settings
@@ -43,10 +44,10 @@ def quarto_run_mock():
     with patch('subprocess.run') as mock_run:
         script_dir = Path(__file__).parent
 
-        with open(script_dir / "test_data" / "quarto_test_output.html", "r", encoding="utf-8") as f:
+        with open(script_dir / "test_data" / "quarto_test_output.html", encoding="utf-8") as f:
             mock_html_content = f.read()
         mock_run.return_value.stdout = mock_html_content
-        mock_run.return_value.returncode = 0 
+        mock_run.return_value.returncode = 0
         yield mock_run
 
 
@@ -71,7 +72,7 @@ def test_plugin_functionality(create_article, temp_path, quarto_run_mock):
     assert f"{TESTFILE_NAME}.html" in articles, "An article should have been written"
 
     filepath = output_path / f"{TESTFILE_NAME}.html"
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         html_content = f.read()
 
     soup = BeautifulSoup(html_content, "html.parser")
