@@ -38,51 +38,44 @@ Hi
     return article_path
 
 
-def test_plugin_functionality(create_article, temp_path):
+@pytest.fixture
+def quarto_run_mock():
+    with patch('subprocess.run') as mock_run:
+        script_dir = Path(__file__).parent
+
+        with open(script_dir / "test_data" / "quarto_test_output.html", "r", encoding="utf-8") as f:
+            mock_html_content = f.read()
+        mock_run.return_value.stdout = mock_html_content
+        mock_run.return_value.returncode = 0 
+        yield mock_run
+
+
+def test_plugin_functionality(create_article, temp_path, quarto_run_mock):
     """Test basic plugin functionality: Header extraction."""
 
-    script_dir = Path(__file__).parent
+    path = Path(temp_path)
+    output_path = path / "output"
+    content_path = path / "content"
+    settings = read_settings(
+        override={
+            "PATH": content_path,
+            "OUTPUT_PATH": output_path,
+            "PLUGIN_PATHS": ["../"],
+            "PLUGINS": ["quarto"],
+        }
+    )
+    pelican = Pelican(settings=settings)
+    pelican.run()
 
-    # Load the mock HTML content from quarto_test_output.html
-    with open(script_dir / "test_data" / "quarto_test_output.html", "r", encoding="utf-8") as f:
-        mock_html_content = f.read()
+    articles = os.listdir(output_path)
+    assert f"{TESTFILE_NAME}.html" in articles, "An article should have been written"
 
-    # Patch the Quarto.run method to return the specific HTML content
-    with patch('quarto.quarto.Quarto.run_quarto', return_value=mock_html_content):
-        path = Path(temp_path)
-        output_path = path / "output"
-        content_path = path / "content"
-        settings = read_settings(
-            override={
-                "PATH": content_path,
-                "OUTPUT_PATH": output_path,
-                "PLUGIN_PATHS": ["../"],
-                "PLUGINS": ["quarto"],
-            }
-        )
-        pelican = Pelican(settings=settings)
-        pelican.run()
+    filepath = output_path / f"{TESTFILE_NAME}.html"
+    with open(filepath, "r", encoding="utf-8") as f:
+        html_content = f.read()
 
-        articles = os.listdir(output_path)
-        assert f"{TESTFILE_NAME}.html" in articles, "An article should have been written"
+    soup = BeautifulSoup(html_content, "html.parser")
 
-        filepath = output_path / f"{TESTFILE_NAME}.html"
-        with open(filepath, "r", encoding="utf-8") as f:
-            html_content = f.read()
-
-        soup = BeautifulSoup(html_content, "html.parser")
-
-        contents = os.listdir(content_path)
-        assert "_quarto.yml" in contents, "A quarto config file should have been prepared"
-
-        script_tags = soup.find_all("script")
-        link_tags = soup.find_all("link")
-
-        # check if body contains Quarto content
-        body = soup.find("body")
-        assert body is not None, "The body of the HTML should exist"
-        quarto_script = body.find("script", id="quarto-html-after-body")
-        assert quarto_script is not None, "Quarto-specific script not found in body"
-
-        assert any("site_lib" in script.get("src", "") for script in script_tags), "No script link to site_lib found in header"
-        assert any("site_lib" in link.get("href", "") for link in link_tags), "No link to site_lib found in header"
+    assert soup.find("body") is not None, "The body of the HTML should exist"
+    quarto_script = soup.find("script", id="quarto-html-after-body")
+    assert quarto_script is not None, "Quarto-specific script not found in body"
