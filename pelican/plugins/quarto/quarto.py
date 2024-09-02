@@ -20,11 +20,12 @@ QUARTO_EXTENSION = "qmd"
 
 
 class QuartoReader(readers.BaseReader):
+    """Read QMD Files using a Pelican Reader."""
+
     file_extensions = [QUARTO_EXTENSION]
 
     def read(self, filename):
         """Read QMD Files."""
-
         with open(filename, encoding="utf-8") as file:
             content = file.read()
 

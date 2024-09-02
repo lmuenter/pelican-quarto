@@ -53,7 +53,6 @@ def quarto_run_mock():
 
 def test_plugin_functionality(create_article, temp_path, quarto_run_mock):
     """Test basic plugin functionality: Header extraction."""
-
     path = Path(temp_path)
     output_path = path / "output"
     content_path = path / "content"
