@@ -36,7 +36,6 @@ class QuartoReader(readers.BaseReader):
 
         # ensure correct datetime format for date
         metadata["date"] = self.parse_date(metadata["date"])
-        metadata["summary"] = "Hi"
 
         if "category" in metadata:
             metadata["category"] = Category(metadata["category"], settings=self.settings)
@@ -44,6 +43,7 @@ class QuartoReader(readers.BaseReader):
             metadata["author"] = Author(metadata["author"], settings=self.settings)
 
         article_content = markdown.markdown(markdown_body)
+        metadata["summary"] = self.generate_article_summary(metadata.get("summary"), article_content)
         return article_content, metadata
 
     def parse_date(self, date_input):
@@ -56,6 +56,37 @@ class QuartoReader(readers.BaseReader):
             return datetime.strptime(date_input, "%Y-%m-%d").replace(tzinfo=pytz.UTC)
         logger.error("Invalid date format or type")
         return None
+
+    def generate_article_summary(self, existing_summary, content):
+        """Generate a summary if one does not exist."""
+        if existing_summary:
+            return existing_summary
+
+        # strip code blocks
+        content_no_code = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
+        html_content = markdown.markdown(content_no_code)
+
+        soup = BeautifulSoup(html_content, "html.parser")
+
+
+        max_paragraphs = self.settings.get("SUMMARY_MAX_PARAGRAPHS", None)
+        if max_paragraphs is not None:
+            paragraphs = soup.find_all("p")[:max_paragraphs]
+            html_content = "".join(str(p) for p in paragraphs)
+            soup = BeautifulSoup(html_content, "html.parser")
+
+        max_length = self.settings.get("SUMMARY_MAX_LENGTH", None)
+        end_suffix = self.settings.get("SUMMARY_END_SUFFIX", "...")
+
+        text_content = soup.get_text()
+        if max_length is not None:
+            words = text_content.split()
+            if len(words) > max_length:
+                text_content = ' '.join(words[:max_length]) + end_suffix
+
+        return text_content
+
+
 
 def setup_quarto_project(pelican_instance):
     """Set up the Quarto project if a .qmd file is found."""
