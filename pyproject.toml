@@ -26,6 +26,9 @@ classifiers = [
 requires-python = ">=3.8.1,<4.0"
 dependencies = [
     "pelican>=4.5",
+    "pyYAML>=6.0",
+    "markdown>=3.4",
+    "beautifulsoup4>=4.0",
 ]
 
 [project.urls]
@@ -44,7 +47,6 @@ lint = [
     "ruff>=0.6.0,<0.7.0",
 ]
 test = [
-    "markdown>=3.4",
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "pytest-sugar>=1.0",
