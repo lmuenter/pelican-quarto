@@ -41,10 +41,12 @@ Hi
 
 @pytest.fixture
 def quarto_run_mock():
-    with patch('subprocess.run') as mock_run:
+    with patch("subprocess.run") as mock_run:
         script_dir = Path(__file__).parent
 
-        with open(script_dir / "test_data" / "quarto_test_output.html", encoding="utf-8") as f:
+        with open(
+            script_dir / "test_data" / "quarto_test_output.html", encoding="utf-8"
+        ) as f:
             mock_html_content = f.read()
         mock_run.return_value.stdout = mock_html_content
         mock_run.return_value.returncode = 0

@@ -20,7 +20,9 @@ class Quarto:
         content_dir.mkdir(parents=True, exist_ok=True)
 
         if quarto_config_path.exists():
-            logger.info(f"_quarto.yml already exists at {quarto_config_path}, skipping setup.")
+            logger.info(
+                f"_quarto.yml already exists at {quarto_config_path}, skipping setup."
+            )
             return
 
         output_dir_abs = self.wdir / self.output_path
@@ -38,20 +40,21 @@ format:
             config_file.write(quarto_config)
         logger.info(f"_quarto.yml created at {quarto_config_path}")
 
-
     def run_quarto(self, filename):
         try:
             result = subprocess.run(
                 ["quarto", "render", filename, "--output", "-"],
-                cwd=str(Path(self.wdir) / 'content'),
+                cwd=str(Path(self.wdir) / "content"),
                 capture_output=True,
                 text=True,
-                check=False
+                check=False,
             )
             if result.returncode == 0:
                 logger.info("Quarto render completed successfully.")
                 return result.stdout
-            logger.error(f"Error while rendering Quarto Markdown File {filename}: {result.stderr}")
+            logger.error(
+                f"Error while rendering Quarto Markdown File {filename}: {result.stderr}"
+            )
             return result.stderr
 
         except Exception:

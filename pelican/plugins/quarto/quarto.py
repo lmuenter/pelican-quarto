@@ -38,20 +38,31 @@ class QuartoReader(readers.BaseReader):
         metadata["date"] = self.parse_date(metadata["date"])
 
         if "category" in metadata:
-            metadata["category"] = Category(metadata["category"], settings=self.settings)
+            metadata["category"] = Category(
+                metadata["category"], settings=self.settings
+            )
         if "author" in metadata:
             metadata["author"] = Author(metadata["author"], settings=self.settings)
 
         article_content = markdown.markdown(markdown_body)
-        metadata["summary"] = self.generate_article_summary(metadata.get("summary"), article_content)
+        metadata["summary"] = self.generate_article_summary(
+            metadata.get("summary"), article_content
+        )
         return article_content, metadata
 
     def parse_date(self, date_input):
         """Ensure date has timezone information."""
         if isinstance(date_input, datetime):
-            return date_input if date_input.tzinfo else date_input.replace(tzinfo=pytz.UTC)
+            return (
+                date_input if date_input.tzinfo else date_input.replace(tzinfo=pytz.UTC)
+            )
         if isinstance(date_input, date):
-            return datetime(year=date_input.year, month=date_input.month, day=date_input.day, tzinfo=pytz.UTC)
+            return datetime(
+                year=date_input.year,
+                month=date_input.month,
+                day=date_input.day,
+                tzinfo=pytz.UTC,
+            )
         if isinstance(date_input, str):
             return datetime.strptime(date_input, "%Y-%m-%d").replace(tzinfo=pytz.UTC)
         logger.error("Invalid date format or type")
@@ -63,11 +74,10 @@ class QuartoReader(readers.BaseReader):
             return existing_summary
 
         # strip code blocks
-        content_no_code = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
+        content_no_code = re.sub(r"```.*?```", "", content, flags=re.DOTALL)
         html_content = markdown.markdown(content_no_code)
 
         soup = BeautifulSoup(html_content, "html.parser")
-
 
         max_paragraphs = self.settings.get("SUMMARY_MAX_PARAGRAPHS", None)
         if max_paragraphs is not None:
@@ -82,10 +92,9 @@ class QuartoReader(readers.BaseReader):
         if max_length is not None:
             words = text_content.split()
             if len(words) > max_length:
-                text_content = ' '.join(words[:max_length]) + end_suffix
+                text_content = " ".join(words[:max_length]) + end_suffix
 
         return text_content
-
 
 
 def setup_quarto_project(pelican_instance):
@@ -107,12 +116,15 @@ def inject_quarto_content(generators):
         if isinstance(generator, ArticlesGenerator):
             process_articles(generator)
 
+
 def process_articles(generator):
     """Process articles within a given ArticlesGenerator."""
     for article in generator.articles:
         if article.source_path.endswith(".qmd"):
             try:
-                quarto = Quarto(article.settings["PATH"], article.settings["OUTPUT_PATH"])
+                quarto = Quarto(
+                    article.settings["PATH"], article.settings["OUTPUT_PATH"]
+                )
                 quarto_html_string = quarto.run_quarto(article.source_path)
                 quarto_html = QuartoHTML(quarto_html_string)
                 soup = BeautifulSoup(quarto_html.body, "html.parser")
@@ -124,7 +136,9 @@ def process_articles(generator):
 
                 body_contents = soup.body
                 if body_contents:
-                    combined_content = "".join(str(element) for element in body_contents.contents)
+                    combined_content = "".join(
+                        str(element) for element in body_contents.contents
+                    )
                     combined_content += "".join(quarto_html.header_scripts_links)
                     combined_content += "".join(quarto_html.header_styles)
                     article._content = combined_content
@@ -132,11 +146,15 @@ def process_articles(generator):
                     article._content = str(soup)
 
             except Exception as e:
-                logger.error(f"Error processing Quarto content for {article.source_path}: {e}")
+                logger.error(
+                    f"Error processing Quarto content for {article.source_path}: {e}"
+                )
+
 
 def add_reader(readers):
     """Add qmd reader to pelican."""
     readers.reader_classes["qmd"] = QuartoReader
+
 
 def register():
     """Register plugin."""
