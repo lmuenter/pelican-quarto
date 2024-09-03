@@ -4,3 +4,4 @@ pelican==4.9.1
 pyYAML==6.0.2
 markdown==3.7
 beautifulsoup4==4.12.3
+bump2version==1.0.1
