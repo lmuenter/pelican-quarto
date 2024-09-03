@@ -37,7 +37,7 @@ This seamless process allows you to leverage Quarto's advanced content capabilit
 
 ## Customization
 
-Pelican-Quarto will generate a `_quarto.yml` configuration file at the root of your content directory. You can customize this file to suit your specific needs. For more details on customization options, please refer to the [Quarto Documentation](https://quarto.org/docs/).
+Pelican-Quarto will generate a `_quarto.yml` configuration file at the root of your content directory. You can customize this file to suit your specific needs. For more details on customization options, please refer to the [Quarto Documentation](https://quarto.org/docs/projects/quarto-projects.html).
 
 ### Quarto Pre-configuration
 
