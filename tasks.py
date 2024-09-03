@@ -8,7 +8,7 @@ from invoke import task
 
 logger = logging.getLogger(__name__)
 
-PKG_NAME = "quarto"
+PKG_NAME = "lm_pelican_quarto"
 PKG_PATH = Path(f"pelican/plugins/{PKG_NAME}")
 
 ACTIVE_VENV = os.environ.get("VIRTUAL_ENV", None)

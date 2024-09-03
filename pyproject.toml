@@ -1,5 +1,5 @@
 [project]
-name = "pelican-quarto"
+name = "lm-pelican-quarto"
 version = "0.0.0"
 description = "A plugin for integrating Quarto reports in your Pelican articles."
 authors = [{name = "Lukas Muenter", email = "lukas.muenter@protonmail.com"}]
@@ -57,7 +57,7 @@ source-includes = [
     "CHANGELOG.md",
     "CONTRIBUTING.md",
 ]
-includes = ["pelican/"]
+includes = ["pelican/plugins/lm_pelican_quarto"]
 excludes = ["**/.DS_Store", "**/test_data/**", "tasks.py"]
 
 [tool.autopub]

@@ -63,7 +63,7 @@ def test_plugin_functionality(create_article, temp_path, quarto_run_mock):
             "PATH": content_path,
             "OUTPUT_PATH": output_path,
             "PLUGIN_PATHS": ["../"],
-            "PLUGINS": ["quarto"],
+            "PLUGINS": ["lm_pelican_quarto"],
         }
     )
     pelican = Pelican(settings=settings)
