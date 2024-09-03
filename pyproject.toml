@@ -1,6 +1,6 @@
 [project]
 name = "lm-pelican-quarto"
-version = "0.1.0"
+version = "0.2.0"
 description = "A plugin for integrating Quarto reports in your Pelican articles."
 authors = [{name = "Lukas Muenter", email = "lukas.muenter@protonmail.com"}]
 license = {text = "MIT"}
