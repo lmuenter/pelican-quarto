@@ -1,11 +1,11 @@
-# Pelican-Quarto: A Quarto Reader for Pelican
+# A Quarto Reader for Pelican
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/lmuenter/pelican-quarto/main.yml?branch=main)](https://github.com/lmuenter/pelican-quarto/actions)
 [![PyPI Version](https://img.shields.io/pypi/v/lm-pelican-quarto)](https://pypi.org/project/lm-pelican-quarto/)
 [![Downloads](https://img.shields.io/pypi/dm/lm-pelican-quarto)](https://pypi.org/project/lm-pelican-quarto/)
 ![License](https://img.shields.io/pypi/l/lm-pelican-quarto?color=blue)
 
-Pelican-Quarto is a plugin that integrates Quarto with Pelican, allowing you to render interactive reports and high-quality documents directly within your Pelican-generated static website. This plugin seamlessly merges Quarto's capabilities, such as interactive charts, tables, and other advanced features, with Pelican's static site generation.
+This plugin integrates Quarto with Pelican, allowing you to render interactive reports and high-quality documents directly within your Pelican-generated static website.
 
 ## Features
 
