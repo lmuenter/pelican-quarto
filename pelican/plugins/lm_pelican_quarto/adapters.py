@@ -37,7 +37,10 @@ format:
         """Run Quarto as a subprocess."""
         try:
             result = subprocess.run(
-                ["quarto", "render", filename, "--output", "-"],
+                ["quarto",
+                 "render",
+                 filename,
+                 "--output", "-"],
                 cwd=str(self.path),
                 capture_output=True,
                 text=True,
@@ -49,10 +52,9 @@ format:
             logger.error(
                 f"Error while rendering Quarto Markdown File {filename}: {result.stderr}"
             )
-            return result.stderr
-        except Exception as e:
-            logger.error(f"An exception occurred while running Quarto: {e!s}")
-            return None
+        except subprocess.SubprocessError as e:
+            logger.error(f"An exception occurred: {e}")
+        return None
 
     def _update_image_references(self, filename, html_content):
         soup = BeautifulSoup(html_content, "html.parser")
@@ -67,9 +69,7 @@ format:
                 img["src"] = new_src
                 updated = True
 
-        if updated:
-            return str(soup)
-        return html_content
+        return str(soup) if updated else html_content
 
     def _get_figure_html_path(self, filename):
         """Calculate path to figure-html for a given .qmd file."""
