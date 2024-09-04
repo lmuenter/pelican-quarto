@@ -13,34 +13,25 @@ class Quarto:
     def __init__(self, path, output_path):
         self.path = Path(path)
         self.wdir = self.path.parent
-        self.output_path = output_path
+        self.output_dir = output_path
+        self.output_path = self.wdir / self.output_dir
         self._setup_quarto_project()
 
     def _setup_quarto_project(self):
-        content_dir = self.path
-        quarto_config_path = content_dir / "_quarto.yml"
-        content_dir.mkdir(parents=True, exist_ok=True)
+        quarto_config_path = self.path / "_quarto.yml"
+        self.path.mkdir(parents=True, exist_ok=True)
 
-        if quarto_config_path.exists():
-            logger.info(
-                f"_quarto.yml already exists at {quarto_config_path}, skipping setup."
-            )
-            return
-
-        output_dir_abs = self.wdir / self.output_path
-
-        quarto_config = f"""
+        if not quarto_config_path.exists():
+            quarto_config = f"""
 project:
   type: website
-  output-dir: {output_dir_abs}
+  output-dir: {self.output_path}
 
 format:
   html:
     theme: none
         """
-        with open(quarto_config_path, "w") as config_file:
-            config_file.write(quarto_config)
-        logger.info(f"_quarto.yml created at {quarto_config_path}")
+            quarto_config_path.write_text(quarto_config)
 
     def run_quarto(self, filename):
         """Run Quarto as a subprocess."""
