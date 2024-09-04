@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 import subprocess
+
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
@@ -42,26 +43,27 @@ format:
         logger.info(f"_quarto.yml created at {quarto_config_path}")
 
     def run_quarto(self, filename):
+        """Run Quarto as a subprocess."""
+
         try:
             result = subprocess.run(
                 ["quarto", "render", filename, "--output", "-"],
-                cwd=str(Path(self.wdir) / "content"),
+                cwd=str(self.path),
                 capture_output=True,
                 text=True,
                 check=False,
             )
             if result.returncode == 0:
                 logger.info("Quarto render completed successfully.")
-                quarto_html = result.stdout
-                updated_html = self._update_image_references(filename, quarto_html)
-                return updated_html
-            logger.error(
-                f"Error while rendering Quarto Markdown File {filename}: {result.stderr}"
-            )
-            return result.stderr
-
-        except Exception:
-            logger.error("An exception occured while running Quarto: {e}")
+                return self._update_image_references(filename, result.stdout)
+            else:
+                logger.error(
+                    f"Error while rendering Quarto Markdown File {filename}: {result.stderr}"
+                )
+                return result.stderr
+        except Exception as e:
+            logger.error(f"An exception occurred while running Quarto: {str(e)}")
+            return None
 
     def _update_image_references(self, filename, html_content):
         soup = BeautifulSoup(html_content, "html.parser")
@@ -72,8 +74,8 @@ format:
         for img in soup.find_all("img"):
             original_src = img.get("src", "")
             if original_src.startswith(f"{base_name}_files/"):
-                new_src = str(figure_path / original_src[len(f"{base_name}_files/"):])
-                img['src'] = new_src
+                new_src = str(figure_path / original_src[len(f"{base_name}_files/") :])
+                img["src"] = new_src
                 updated = True
 
         if updated:
@@ -81,7 +83,7 @@ format:
         return html_content
 
     def _get_figure_html_path(self, filename):
-        """ Calculate path to figure-html for a given .qmd file. """
+        """Calculate path to figure-html for a given .qmd file."""
         file_path = Path(filename)
         base_name = file_path.stem
         relative_path = file_path.relative_to(self.path)
