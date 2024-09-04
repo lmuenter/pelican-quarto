@@ -37,11 +37,7 @@ format:
         """Run Quarto as a subprocess."""
         try:
             result = subprocess.run(
-                ["quarto",
-                 "render",
-                 filename,
-                 "--output", "-",
-                 "--no-cache"],
+                ["quarto", "render", filename, "--output", "-", "--no-cache"],
                 cwd=str(self.path),
                 capture_output=True,
                 text=True,
