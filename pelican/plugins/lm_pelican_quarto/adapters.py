@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 import subprocess
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,9 @@ format:
             )
             if result.returncode == 0:
                 logger.info("Quarto render completed successfully.")
-                return result.stdout
+                quarto_html = result.stdout
+                updated_html = self._update_image_references(filename, quarto_html)
+                return updated_html
             logger.error(
                 f"Error while rendering Quarto Markdown File {filename}: {result.stderr}"
             )
@@ -59,3 +62,27 @@ format:
 
         except Exception:
             logger.error("An exception occured while running Quarto: {e}")
+
+    def _update_image_references(self, filename, html_content):
+        soup = BeautifulSoup(html_content, "html.parser")
+        updated = False
+        base_name = Path(filename).stem
+        figure_path = self._get_figure_html_path(filename)
+
+        for img in soup.find_all("img"):
+            original_src = img.get("src", "")
+            if original_src.startswith(f"{base_name}_files/"):
+                new_src = str(figure_path / original_src[len(f"{base_name}_files/"):])
+                img['src'] = new_src
+                updated = True
+
+        if updated:
+            return str(soup)
+        return html_content
+
+    def _get_figure_html_path(self, filename):
+        """ Calculate path to figure-html for a given .qmd file. """
+        file_path = Path(filename)
+        base_name = file_path.stem
+        relative_path = file_path.relative_to(self.path)
+        return relative_path.parent / f"{base_name}_files"
