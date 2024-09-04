@@ -44,7 +44,6 @@ format:
 
     def run_quarto(self, filename):
         """Run Quarto as a subprocess."""
-
         try:
             result = subprocess.run(
                 ["quarto", "render", filename, "--output", "-"],
@@ -56,13 +55,12 @@ format:
             if result.returncode == 0:
                 logger.info("Quarto render completed successfully.")
                 return self._update_image_references(filename, result.stdout)
-            else:
-                logger.error(
-                    f"Error while rendering Quarto Markdown File {filename}: {result.stderr}"
-                )
-                return result.stderr
+            logger.error(
+                f"Error while rendering Quarto Markdown File {filename}: {result.stderr}"
+            )
+            return result.stderr
         except Exception as e:
-            logger.error(f"An exception occurred while running Quarto: {str(e)}")
+            logger.error(f"An exception occurred while running Quarto: {e!s}")
             return None
 
     def _update_image_references(self, filename, html_content):
