@@ -97,7 +97,7 @@ def quarto_run_mock():
         yield mock_run
 
 
-def test_plugin_functionality(create_article, temp_path):
+def test_plugin_functionality(create_article, temp_path, quarto_run_mock):
     """Test basic plugin functionality: Header extraction."""
     path = Path(temp_path)
     output_path = path / "output"
@@ -127,7 +127,7 @@ def test_plugin_functionality(create_article, temp_path):
     assert quarto_script is not None, "Quarto-specific script not found in body"
 
 
-def test_figure_html_path_correction(create_nested_article, temp_path):
+def test_figure_html_path_correction(create_nested_article, temp_path, quarto_run_mock):
     """Test image path correction when nested dirs are present."""
     path = Path(temp_path)
     output_path = path / "output"
