@@ -28,8 +28,9 @@ def create_article(temp_path):
     article_content = """
 ---
 title: testqmd
-date: 2024-06-02
-category: test
+date: "2024-06-02"
+category: "test"
+tags: ["arts", "b"]
 ---
 Hi
 
@@ -58,9 +59,10 @@ def create_nested_article(temp_path):
 
     article_content = """
 ---
-title: testqmd
-date: 2024-06-02
-category: test
+title: "testqmd"
+date: "2024-06-02"
+category: "test"
+tags: ["a", "b"]
 ---
 Hi
 
@@ -95,7 +97,7 @@ def quarto_run_mock():
         yield mock_run
 
 
-def test_plugin_functionality(create_article, temp_path, quarto_run_mock):
+def test_plugin_functionality(create_article, temp_path):
     """Test basic plugin functionality: Header extraction."""
     path = Path(temp_path)
     output_path = path / "output"
@@ -125,7 +127,7 @@ def test_plugin_functionality(create_article, temp_path, quarto_run_mock):
     assert quarto_script is not None, "Quarto-specific script not found in body"
 
 
-def test_figure_html_path_correction(create_nested_article, temp_path, quarto_run_mock):
+def test_figure_html_path_correction(create_nested_article, temp_path):
     """Test image path correction when nested dirs are present."""
     path = Path(temp_path)
     output_path = path / "output"
