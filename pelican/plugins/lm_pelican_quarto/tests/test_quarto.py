@@ -28,8 +28,9 @@ def create_article(temp_path):
     article_content = """
 ---
 title: testqmd
-date: 2024-06-02
-category: test
+date: "2024-06-02"
+category: "test"
+tags: ["arts", "b"]
 ---
 Hi
 
@@ -58,9 +59,10 @@ def create_nested_article(temp_path):
 
     article_content = """
 ---
-title: testqmd
-date: 2024-06-02
-category: test
+title: "testqmd"
+date: "2024-06-02"
+category: "test"
+tags: ["a", "b"]
 ---
 Hi
 
